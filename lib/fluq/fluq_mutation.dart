@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:fluq/fluq.dart';
 
+/// Widget for handling mutations
 class Mutation<T> extends StatefulWidget {
   final Future<T> Function() fetch;
   final void Function(T result) onSuccess;

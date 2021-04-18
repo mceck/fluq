@@ -5,6 +5,7 @@ import 'package:fluq/fluq/fluq_cache.dart';
 
 mixin RapiSingleChild on SingleChildWidget {}
 
+/// Wrap your application or th part of it where you want to use fluq with this single provider
 class FluqProvider extends SingleChildStatefulWidget with RapiSingleChild {
   final Fluq cache = Fluq();
 

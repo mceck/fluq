@@ -7,7 +7,7 @@ void main() {
   runApp(MyApp());
 }
 
-// query declaration
+/// query declaration
 class MyQuery extends QueryModel {
   get key => "my-query";
 
@@ -23,7 +23,7 @@ class MyQuery extends QueryModel {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // initialize Fluq provider
+    /// initialize Fluq provider
     return FluqProvider(
       child: MaterialApp(
         title: 'Flutter Demo',
@@ -50,7 +50,7 @@ class MyHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // query listener, listen for error to display in snackbar
+    /// query listener, listen for error to display in snackbar
     return QueryListener(
       query: MyQuery(),
       listener: (context, state) {
@@ -73,26 +73,26 @@ class MyHomePage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              // test actions
+              /// test actions
               TextButton(
                 onPressed: () {
                   Fluq.of(context).invalidateAllQuery();
                 },
                 child: Text('invalidate cache'),
               ),
-              TextButton(
-                onPressed: () async {
-                  Fluq.mutate(context,
-                      fetch: () => Future.delayed(const Duration(seconds: 1))
-                          .then((_) => 'new result'),
-                      update: (fluq, result) {
-                        fluq.setQueryState(
-                          MyQuery().key,
-                          QueryResult({'result': result}),
-                        );
-                      });
+              Mutation(
+                fetch: () => Future.delayed(const Duration(seconds: 1))
+                    .then((_) => 'new result'),
+                update: (fluq, result) {
+                  fluq.setQueryState(
+                    MyQuery().key,
+                    QueryResult({'result': result}),
+                  );
                 },
-                child: Text('trigger mutation'),
+                builder: (context, fetch) => TextButton(
+                  onPressed: fetch,
+                  child: Text('trigger mutation'),
+                ),
               ),
               TextButton(
                 onPressed: () async {

@@ -5,6 +5,11 @@ import 'package:fluq/fluq/query_state.dart';
 import 'package:fluq/fluq/query_model.dart';
 import 'package:fluq/fluq/fluq_cache.dart';
 
+/// Use this widget to access a query result reactively to state changes
+///
+/// pass your query model as parameter
+/// pass a builder for rendering your data reactively to state changes
+/// optionally pass a listener function to handle state changes
 class QueryBuilder extends StatefulWidget {
   final QueryModel query;
   final Widget Function(BuildContext context, QueryState state) builder;
@@ -55,6 +60,10 @@ class _QueryBuilderState extends State<QueryBuilder> {
   }
 }
 
+/// Use this widget to attach a listener to a query result reacting to state changes
+///
+/// pass your query model as parameter
+/// pass a listener function to handle state changes
 class QueryListener extends StatefulWidget {
   final QueryModel query;
   final Widget child;
