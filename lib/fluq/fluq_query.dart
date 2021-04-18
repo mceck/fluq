@@ -15,8 +15,12 @@ class QueryBuilder extends StatefulWidget {
   final Widget Function(BuildContext context, QueryState state) builder;
   final Widget Function(BuildContext context, QueryState state) listener;
 
-  const QueryBuilder({Key key, this.query, this.builder, this.listener})
-      : super(key: key);
+  const QueryBuilder({
+    Key key,
+    @required this.query,
+    @required this.builder,
+    this.listener,
+  }) : super(key: key);
 
   @override
   _QueryBuilderState createState() => _QueryBuilderState();
@@ -39,7 +43,7 @@ class _QueryBuilderState extends State<QueryBuilder> {
 
   @override
   void dispose() {
-    if (_listenerSub != null) _listenerSub.cancel();
+    _listenerSub?.cancel();
     super.dispose();
   }
 
@@ -69,8 +73,12 @@ class QueryListener extends StatefulWidget {
   final Widget child;
   final void Function(BuildContext context, QueryState state) listener;
 
-  const QueryListener({Key key, this.query, this.child, this.listener})
-      : super(key: key);
+  const QueryListener({
+    Key key,
+    @required this.query,
+    @required this.child,
+    @required this.listener,
+  }) : super(key: key);
 
   @override
   _QueryListenerState createState() => _QueryListenerState();
@@ -84,16 +92,14 @@ class _QueryListenerState extends State<QueryListener> {
     super.didChangeDependencies();
     final fluq = Fluq.of(context);
     fluq.prefetch(widget.query);
-    if (widget.listener != null) {
-      _listenerSub = fluq.getQueryStream(widget.query.key).listen((value) {
-        widget.listener(context, value);
-      });
-    }
+    _listenerSub = fluq.getQueryStream(widget.query.key).listen((value) {
+      widget.listener(context, value);
+    });
   }
 
   @override
   void dispose() {
-    if (_listenerSub != null) _listenerSub.cancel();
+    _listenerSub?.cancel();
     super.dispose();
   }
 

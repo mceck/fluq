@@ -13,11 +13,11 @@ class Mutation<T> extends StatefulWidget {
 
   const Mutation({
     Key key,
-    this.fetch,
-    this.builder,
+    @required this.fetch,
+    @required this.builder,
+    this.update,
     this.onSuccess,
     this.onError,
-    this.update,
     this.autoFetch = false,
   }) : super(key: key);
 

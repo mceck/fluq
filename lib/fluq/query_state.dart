@@ -9,7 +9,7 @@ abstract class QueryState {}
 /// it will be the inital state when every query stream is invalidated
 class QueryLoading extends QueryState {}
 
-/// State used for loading state
+/// State used for error state
 /// it will be emitted when there is a catched error on the query fetch function
 /// it contains the error catched in the query fetch function
 class QueryError extends QueryState {
