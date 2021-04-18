@@ -1,6 +1,6 @@
 # fluq
 
-Simple state management api based on streams
+Simple state management api for Flutter based on streams
 
 All queries latest results are cached in streams and the results are fetched only the first time they will be accessed, the results will not be refetched untill the respective query will be manually invalidated
 
