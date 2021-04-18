@@ -1,5 +1,5 @@
 name: fluq
-description: Package for state management with query and mutations
+description: A simple state management api based on streams with query and mutation handlers
 version: 0.0.1
 repository: https://github.com/mceck/fluq
 homepage:
