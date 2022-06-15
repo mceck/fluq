@@ -3,15 +3,15 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:fluq/fluq/fluq_cache.dart';
 
-mixin RapiSingleChild on SingleChildWidget {}
+mixin FluqSingleChild on SingleChildWidget {}
 
 /// Wrap your application or th part of it where you want to use fluq with this single provider
-class FluqProvider extends SingleChildStatefulWidget with RapiSingleChild {
+class FluqProvider extends SingleChildStatefulWidget with FluqSingleChild {
   final Fluq cache = Fluq();
 
   FluqProvider({
-    Key key,
-    @required Widget child,
+    Key? key,
+    required Widget child,
   }) : super(key: key, child: child);
 
   @override
@@ -26,7 +26,7 @@ class _FluqProviderState extends SingleChildState<FluqProvider> {
   }
 
   @override
-  Widget buildWithChild(BuildContext context, Widget child) {
+  Widget buildWithChild(BuildContext context, Widget? child) {
     return InheritedProvider.value(
       value: widget.cache,
       child: child,

@@ -2,11 +2,11 @@ import 'package:rxdart/rxdart.dart';
 import 'package:fluq/fluq/query_state.dart';
 
 /// class used behind to store every query stream and fetch funcion
-class QueryStream {
+class QueryStream<ResultType> {
   final BehaviorSubject<QueryState> stream = BehaviorSubject<QueryState>();
-  final Future<dynamic> Function(BehaviorSubject<QueryState> stream) _fetch;
+  final Future<ResultType> Function(BehaviorSubject<QueryState> stream) _fetch;
 
-  Future fetch() => _fetch(stream);
+  Future<ResultType> fetch() => _fetch(stream);
 
   void dispose() {
     stream.close();

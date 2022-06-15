@@ -10,15 +10,22 @@ import 'package:fluq/fluq/query_state.dart';
 
 /// Fluq instance
 class Fluq {
-  final Map<dynamic, QueryStream> _queryCache = HashMap<dynamic, QueryStream>();
+  final Map<String, QueryStream> _queryCache = HashMap<String, QueryStream>();
 
-  BehaviorSubject<QueryState> getQueryStream(dynamic id) =>
-      _queryCache[id]?.stream;
+  BehaviorSubject<QueryState>? getQueryStream(String id) {
+    return _queryCache[id]?.stream;
+  }
 
   /// use to programmatically fetch a query model and create the relative stream if not exist
   /// if the stream already exist it will do nothing
-  void prefetch(QueryModel query) {
-    if (_queryCache.containsKey(query.key)) return;
+  void prefetch<ResultType>(QueryModel<dynamic, ResultType> query) {
+    if (_queryCache.containsKey(query.key)) {
+      if (_queryCache[query.key]!.stream.value is QueryError) {
+        _queryCache[query.key]!.stream.add(QueryLoading());
+        _fetchData<ResultType>(query.fetch, _queryCache[query.key]!.stream);
+      }
+      return;
+    }
     _queryCache[query.key] = QueryStream(
       (BehaviorSubject stream) {
         stream.add(QueryLoading());
@@ -29,9 +36,9 @@ class Fluq {
 
   /// use to emit/update a specific query state on a stream
   /// pass the key of the query to update state and the new state
-  void setQueryState(key, QueryState state) {
+  void setQueryState(String key, QueryState state) {
     assert(_queryCache.containsKey(key));
-    _queryCache[key].stream.add(state);
+    _queryCache[key]!.stream.add(state);
   }
 
   /// use to invalidate all query stream and force to refetch of all of them
@@ -42,15 +49,14 @@ class Fluq {
   }
 
   /// use to invalidate a single query stream and force to refetch
-  /// pass the query key as parameter
-  void invalidateQuery(key) {
-    _queryCache[key].fetch();
+  void invalidateQuery(String key) {
+    _queryCache[key]!.fetch();
   }
 
   /// dispose a query by passing the key
   void disposeStream(key) {
     assert(_queryCache.containsKey(key));
-    _queryCache[key].dispose();
+    _queryCache[key]!.dispose();
     _queryCache.remove(key);
   }
 
@@ -66,7 +72,8 @@ class Fluq {
   static Fluq of(BuildContext context) =>
       Provider.of<Fluq>(context, listen: false);
 
-  Future<void> _fetchData(Future Function() fetch, BehaviorSubject stream) {
+  Future<void> _fetchData<ResultType>(
+      Future<ResultType> Function() fetch, BehaviorSubject stream) {
     return fetch()
         .then(
           (data) => stream.add(

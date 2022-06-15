@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:fluq/fluq.dart';
 
@@ -8,19 +6,19 @@ void main() {
 }
 
 /// query declaration
-class MyQuery extends QueryModel {
-  get key => "my-query";
+class NumberQuery extends QueryModel<int, int> {
+  NumberQuery(int parameter) : super('number-query', parameter: parameter);
 
   @override
-  Future fetch([Map<String, dynamic> params]) async {
+  Future<int> fetch() async {
     await Future.delayed(const Duration(seconds: 1));
-    return {
-      'result': 'apiTestResult',
-    };
+    return parameter! + 1;
   }
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     /// initialize Fluq provider
@@ -30,36 +28,67 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: MyHomePage(),
+        home: const MyHomePage(),
       ),
     );
   }
 }
 
-class MyHomePage extends StatelessWidget {
-  Widget buildMyQuery(BuildContext context, QueryState state) {
-    if (state is QueryLoading) {
-      return CircularProgressIndicator();
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({Key? key}) : super(key: key);
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  int param = 0;
+
+  void incrementParam() {
+    setState(() {
+      param++;
+    });
+  }
+
+  void decrementParam() {
+    setState(() {
+      param--;
+    });
+  }
+
+  Widget buildMyQuery(BuildContext context, QueryState? state) {
+    if (state == null || state is QueryLoading) {
+      return const CircularProgressIndicator();
     }
     if (state is QueryError) {
       return Text('${state.error}');
     }
-    final result = state as QueryResult;
-    return Text(json.encode(result.data));
+    final result = state as QueryResult<int>;
+    return Text('param+1 = ' + result.data.toString());
   }
 
   @override
   Widget build(BuildContext context) {
     /// query listener, listen for error to display in snackbar
     return QueryListener(
-      query: MyQuery(),
+      query: NumberQuery(param),
       listener: (context, state) {
         if (state is QueryError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [Text(' Error!!!')],
+                children: const [Text('Error!!!')],
+              ),
+            ),
+          );
+        }
+        if (state is QueryResult<int> && state.data > 10) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [Text('Counter > 10 :)')],
               ),
             ),
           );
@@ -67,47 +96,72 @@ class MyHomePage extends StatelessWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('My Homepage'),
+          title: const Text('My Homepage'),
         ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              /// test actions
               TextButton(
                 onPressed: () {
                   Fluq.of(context).invalidateAllQuery();
                 },
-                child: Text('invalidate cache'),
+                child: const Text('invalidate all cache'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Fluq.of(context).invalidateQuery(NumberQuery(param).key);
+                },
+                child: const Text('invalidate this query'),
               ),
               Mutation(
-                fetch: () => Future.delayed(const Duration(seconds: 1))
-                    .then((_) => 'new result'),
-                update: (fluq, result) {
+                fetch: (fluq) {
+                  fluq.setQueryState(NumberQuery(param).key, QueryLoading());
+                  return Future.delayed(const Duration(seconds: 1))
+                      .then((_) => 10);
+                },
+                update: (fluq, int result) {
                   fluq.setQueryState(
-                    MyQuery().key,
-                    QueryResult({'result': result}),
+                    NumberQuery(param).key,
+                    QueryResult(result),
                   );
                 },
                 builder: (context, fetch) => TextButton(
                   onPressed: fetch,
-                  child: Text('trigger mutation'),
+                  child: const Text('trigger mutation set10'),
                 ),
               ),
               TextButton(
                 onPressed: () async {
                   Fluq.of(context).setQueryState(
-                      MyQuery().key, QueryError('this is an error!'));
+                      NumberQuery(param).key, QueryError('this is an error!'));
                 },
-                child: Text('trigger error'),
+                child: const Text('trigger error'),
+              ),
+              const SizedBox(height: 50),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    onPressed: decrementParam,
+                    child: const Text('-'),
+                  ),
+                  Text('dynamic param $param'),
+                  TextButton(
+                    onPressed: incrementParam,
+                    child: const Text('+'),
+                  ),
+                ],
               ),
               // query builders
               QueryBuilder(
-                query: MyQuery(),
+                query: NumberQuery(param),
                 builder: buildMyQuery,
               ),
+              const SizedBox(height: 50),
+              const Text('static param=8'),
               QueryBuilder(
-                query: MyQuery(),
+                query: NumberQuery(8),
                 builder: buildMyQuery,
               ),
             ],

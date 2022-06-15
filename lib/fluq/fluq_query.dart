@@ -10,41 +10,53 @@ import 'package:fluq/fluq/fluq_cache.dart';
 /// pass your query model as parameter
 /// pass a builder for rendering your data reactively to state changes
 /// optionally pass a listener function to handle state changes
-class QueryBuilder extends StatefulWidget {
-  final QueryModel query;
-  final Widget Function(BuildContext context, QueryState state) builder;
-  final Widget Function(BuildContext context, QueryState state) listener;
+class QueryBuilder<ResultType> extends StatefulWidget {
+  final QueryModel<dynamic, ResultType> query;
+  final Widget Function(BuildContext context, QueryState? state) builder;
+  final Widget Function(BuildContext context, QueryState state)? listener;
 
   const QueryBuilder({
-    Key key,
-    @required this.query,
-    @required this.builder,
+    Key? key,
+    required this.query,
+    required this.builder,
     this.listener,
   }) : super(key: key);
 
   @override
-  _QueryBuilderState createState() => _QueryBuilderState();
+  _QueryBuilderState<ResultType> createState() =>
+      _QueryBuilderState<ResultType>();
 }
 
-class _QueryBuilderState extends State<QueryBuilder> {
-  StreamSubscription _listenerSub;
+class _QueryBuilderState<ResultType> extends State<QueryBuilder<ResultType>> {
+  StreamSubscription? _listenerSub;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final fluq = Fluq.of(context);
-    fluq.prefetch(widget.query);
-    if (widget.listener != null) {
-      _listenerSub = fluq.getQueryStream(widget.query.key).listen((value) {
-        widget.listener(context, value);
-      });
-    }
+    _update();
+  }
+
+  @override
+  void didUpdateWidget(covariant QueryBuilder<ResultType> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _update();
   }
 
   @override
   void dispose() {
     _listenerSub?.cancel();
     super.dispose();
+  }
+
+  void _update() {
+    final fluq = Fluq.of(context);
+    fluq.prefetch(widget.query);
+    if (widget.listener != null) {
+      _listenerSub?.cancel();
+      _listenerSub = fluq.getQueryStream(widget.query.key)!.listen((value) {
+        widget.listener!(context, value);
+      });
+    }
   }
 
   @override
@@ -68,39 +80,51 @@ class _QueryBuilderState extends State<QueryBuilder> {
 ///
 /// pass your query model as parameter
 /// pass a listener function to handle state changes
-class QueryListener extends StatefulWidget {
-  final QueryModel query;
+class QueryListener<ResultType> extends StatefulWidget {
+  final QueryModel<dynamic, ResultType> query;
   final Widget child;
   final void Function(BuildContext context, QueryState state) listener;
 
   const QueryListener({
-    Key key,
-    @required this.query,
-    @required this.child,
-    @required this.listener,
+    Key? key,
+    required this.query,
+    required this.child,
+    required this.listener,
   }) : super(key: key);
 
   @override
-  _QueryListenerState createState() => _QueryListenerState();
+  _QueryListenerState<ResultType> createState() =>
+      _QueryListenerState<ResultType>();
 }
 
-class _QueryListenerState extends State<QueryListener> {
-  StreamSubscription _listenerSub;
+class _QueryListenerState<ResultType> extends State<QueryListener<ResultType>> {
+  StreamSubscription? _listenerSub;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final fluq = Fluq.of(context);
-    fluq.prefetch(widget.query);
-    _listenerSub = fluq.getQueryStream(widget.query.key).listen((value) {
-      widget.listener(context, value);
-    });
+    _update();
+  }
+
+  @override
+  void didUpdateWidget(covariant QueryListener<ResultType> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _update();
   }
 
   @override
   void dispose() {
     _listenerSub?.cancel();
     super.dispose();
+  }
+
+  void _update() {
+    final fluq = Fluq.of(context);
+    fluq.prefetch(widget.query);
+    _listenerSub?.cancel();
+    _listenerSub = fluq.getQueryStream(widget.query.key)!.listen((value) {
+      widget.listener(context, value);
+    });
   }
 
   @override
